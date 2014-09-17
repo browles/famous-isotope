@@ -11,8 +11,9 @@ define(function(require, exports, module) {
 
         _createBlocks.call(this);
         _populateCols.call(this);
-        console.log(this.options.containers)
-        _renderColContainers.call(this, 0, 0);
+        // _populateRows.call(this);
+        _renderColContainers.call(this,0,0);
+        // _renderRowContainers.call(this,0,0);
     }
 
     BlocksView.prototype = Object.create(View.prototype);
@@ -24,7 +25,7 @@ define(function(require, exports, module) {
         width: 1000,
         height: 500,
         numContainers: 10,
-        numBoxes: 100
+        numBoxes: 60
     };
 
     function _createBlocks() {
@@ -36,8 +37,13 @@ define(function(require, exports, module) {
             rand2 = Math.random();
             width =  rand1 < 0.67 ? rand1 < 0.33 ? 100 : 50 : 25
             // height = rand2 < 0.67 ? rand2 < 0.33 ? 100 : 50 : 25
+            // width =  rand1 < 0.75 ? rand1 < 0.5 ? rand1 < 0.25 ? 100 : 50 : 25 : 12
+            // height = rand2 < 0.75 ? rand2 < 0.5 ? rand2 < 0.25 ? 100 : 50 : 25 : 12
             // width = rand1 < 0.5 ? 100 : 50 
-            height = rand2 < 0.5 ? 100 : 50 
+            height = rand2 < 0.5 ? 100 : 50
+
+            // width = 25 + 100 * Math.random();
+            // height = 25 + 100 * Math.random();
 
             block = new Block(width, height, i);
             this.options.data.push(block);
@@ -145,6 +151,28 @@ define(function(require, exports, module) {
         }
     }
 
+    function _populateRows() {
+        var blocks = this.options.data;
+        var containers = this.options.containers;
+        var row;
+        var block;
+        var j;
+        for (var i = 0; i < blocks.length; i++) {
+            block = blocks[i];
+            j = 0;
+            row = containers[0];
+            while (!_placeInRow(block, row)) {
+                if (!row) {
+                    containers.push( new Row(block, 
+                        this.options.width,
+                        this.options.height/this.options.numContainers) );
+                    break;
+                }
+                row = containers[++j];
+            }
+        }
+    }
+
     function _renderCol(x,y,col) {
         if (col instanceof Block) {
             var positionModifier = new StateModifier({     
@@ -185,6 +213,17 @@ define(function(require, exports, module) {
             col = containers[i];
             _renderCol.call(this,offset,y,col);
             offset += col.width;
+        }
+    }
+
+    function _renderRowContainers(x,y) {
+        var containers = this.options.containers;
+        var row;
+        var offset = y;
+        for (var i = 0; i < containers.length; i++) {
+            row = containers[i];
+            _renderRow.call(this,x,offset,row);
+            offset += row.height;
         }
     }
 
